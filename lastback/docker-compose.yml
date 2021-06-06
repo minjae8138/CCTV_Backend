@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+    django:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000
+      volumes:
+        - .:/code
+      expose:
+        - "8000"
+    mosquitto:
+      image: eclipse-mosquitto
+        ports:
+          - 1883:1883
+          - 8883:8883
+        volumes:
+          - mosquitto/data:/mosquitto/data
+          - mosquitto/log:/mosquitto/log
+          - mosquitto/config:/mosquitto/config
+        restart: unless-stopped

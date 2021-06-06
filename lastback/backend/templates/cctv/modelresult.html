@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>모델의 결과 받아오는 페이지</title>
+    <script src = "https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"
+            type = "text/javascript"> </script>
+    <script type="text/javascript">
+        var mqtt;
+        var reconnectTimeout  =2000;
+        var host = "192.168.0.17";
+        var port = 9001;
+        //callback function
+        function onConnect(){
+            console.log("접속완료")
+            mqtt.subscribe("model_result");
+            message = new Paho.MQTT.Message("start");
+            //topic설정
+            message.destinationName = "sensor";
+            //mqtt메시지 보내기 - publish
+            mqtt.send(message);
+        }
+        function onFailure(message){
+            console.log("접속실패"+host+","+port);
+            setTimeout(MQTTconnect,reconnectTimeout)
+        }
+        function onMessageArrived(msg){
+            //결과값이 도착하면 화면에 뿌려주자
+            var element = document.getElementById("model_result");
+            element.innerText = msg.payloadBytes;
+            document.write(String.fromCharCode(element.innerText));
+        }
+        function MQTTconnect(){
+            console.log("mqtt접속"+host+","+port);
+            //클라이언트 오브젝트 생성
+            mqtt = new Paho.MQTT.Client(host,port,"javascript_client");
+            var options = {
+                timeout:3,
+                onSuccess:onConnect,
+                onFailure:onFailure,
+            };
+            mqtt.onMessageArrived = onMessageArrived
+            mqtt.connect(options); //connect
+        }
+    </script>
+</head>
+<body>
+    <h1>모델의 결과를 MQTT 웹소켓으로 받아오자</h1>
+    <script type="text/javascript">
+        MQTTconnect();
+    </script>
+    <h2 id="model_result"></h2>
+</body>
+</html>
